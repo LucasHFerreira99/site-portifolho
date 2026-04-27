@@ -1,6 +1,6 @@
 <div align="center">
 
-# ✦ Portfólio — Lucas Ferreira & Nícolas Nunes
+# ✦ Portfólio — Lucas Ferreira
 
 **Site de portfólio pessoal desenvolvido com HTML, CSS e JavaScript puro.**  
 Design escuro, animações interativas no Canvas e experiência totalmente responsiva.
