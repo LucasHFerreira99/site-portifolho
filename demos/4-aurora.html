@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Demo — Aurora Boreal</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0a0a0f; overflow: hidden; }
+  canvas { display: block; }
+  .label {
+    position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%);
+    color: rgba(255,255,255,.25); font-size: .75rem; letter-spacing: .1em;
+    text-transform: uppercase; pointer-events: none;
+  }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<p class="label">Aurora boreal animada</p>
+<script>
+  const canvas = document.getElementById('c');
+  const ctx    = canvas.getContext('2d');
+  let W, H;
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  // Cada banda de aurora
+  const BANDS = [
+    { phase: 0.00, speed: 0.00055, amp: 0.11, base: 0.30, thick: 0.14, r:  99, g: 241, b: 180, a: 0.13 },
+    { phase: 1.30, speed: 0.00040, amp: 0.09, base: 0.38, thick: 0.10, r:  34, g: 211, b: 238, a: 0.10 },
+    { phase: 2.60, speed: 0.00070, amp: 0.13, base: 0.22, thick: 0.18, r:  99, g: 102, b: 241, a: 0.09 },
+    { phase: 0.80, speed: 0.00035, amp: 0.07, base: 0.44, thick: 0.08, r: 168, g: 240, b: 160, a: 0.08 },
+    { phase: 3.50, speed: 0.00060, amp: 0.10, base: 0.16, thick: 0.12, r: 168, g:  85, b: 247, a: 0.07 },
+  ];
+
+  const SEGMENTS = 200;
+  let t = 0;
+
+  function drawBand(band) {
+    const { phase, amp, base, thick, r, g, b, a } = band;
+
+    ctx.save();
+    ctx.filter = `blur(${Math.round(H * thick * 0.38)}px)`;
+
+    // Build path following a wavy baseline
+    ctx.beginPath();
+    for (let i = 0; i <= SEGMENTS; i++) {
+      const x = (i / SEGMENTS) * W;
+      // Two harmonics for organic shape
+      const wave =
+        Math.sin(i / SEGMENTS * Math.PI * 3.2 + t * 1.1 + phase) * amp * H * 0.6 +
+        Math.sin(i / SEGMENTS * Math.PI * 6.0 + t * 1.7 + phase * 1.4) * amp * H * 0.25;
+      const y = base * H + wave;
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+
+    // Close loop: right edge → bottom → left edge → back to start
+    ctx.lineTo(W, H);
+    ctx.lineTo(0, H);
+    ctx.closePath();
+
+    // Gradient: bright at band center, fade toward dark
+    const grad = ctx.createLinearGradient(0, base * H - thick * H, 0, base * H + thick * H * 1.5);
+    grad.addColorStop(0,    `rgba(${r},${g},${b},0)`);
+    grad.addColorStop(0.35, `rgba(${r},${g},${b},${a})`);
+    grad.addColorStop(0.65, `rgba(${r},${g},${b},${a * 0.6})`);
+    grad.addColorStop(1,    `rgba(${r},${g},${b},0)`);
+
+    ctx.fillStyle = grad;
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    t += 1;
+    BANDS.forEach(band => {
+      band.phase += band.speed;
+      drawBand(band);
+    });
+
+    requestAnimationFrame(draw);
+  }
+  draw();
+</script>
+</body>
+</html>

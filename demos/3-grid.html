@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Demo — Grid Magnético</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0a0a0f; overflow: hidden; }
+  canvas { display: block; }
+  .label {
+    position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%);
+    color: rgba(255,255,255,.25); font-size: .75rem; letter-spacing: .1em;
+    text-transform: uppercase; pointer-events: none;
+  }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<p class="label">Mova o mouse pela grade</p>
+<script>
+  const canvas = document.getElementById('c');
+  const ctx    = canvas.getContext('2d');
+  let W, H;
+  const SPACING = 36;
+  const INFLUENCE = 110;
+  const MAX_PUSH  = 28;
+  let mouse = { x: -9999, y: -9999 };
+  let points = [];
+
+  function buildGrid() {
+    points = [];
+    const cols = Math.ceil(W / SPACING) + 2;
+    const rows = Math.ceil(H / SPACING) + 2;
+    const offX = (W - (cols - 1) * SPACING) / 2;
+    const offY = (H - (rows - 1) * SPACING) / 2;
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        points.push({
+          ox: offX + c * SPACING,
+          oy: offY + r * SPACING,
+          x: offX + c * SPACING,
+          y: offY + r * SPACING,
+        });
+      }
+    }
+  }
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+    buildGrid();
+  }
+  resize();
+  window.addEventListener('resize', resize);
+  window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+  window.addEventListener('mouseleave', () => { mouse.x = -9999; mouse.y = -9999; });
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    points.forEach(p => {
+      const dx   = p.ox - mouse.x;
+      const dy   = p.oy - mouse.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < INFLUENCE) {
+        const force = (1 - dist / INFLUENCE) * MAX_PUSH;
+        p.x += (p.ox + (dx / dist) * force - p.x) * 0.18;
+        p.y += (p.oy + (dy / dist) * force - p.y) * 0.18;
+      } else {
+        p.x += (p.ox - p.x) * 0.12;
+        p.y += (p.oy - p.y) * 0.12;
+      }
+
+      const distNow = Math.sqrt((p.x - mouse.x) ** 2 + (p.y - mouse.y) ** 2);
+      const proximity = Math.max(0, 1 - distNow / INFLUENCE);
+      const radius    = 1.2 + proximity * 2.5;
+
+      // Color shift near mouse: indigo → sky
+      const r = Math.round(99  + (14  - 99)  * proximity);
+      const g = Math.round(102 + (165 - 102) * proximity);
+      const b = Math.round(241 + (233 - 241) * proximity);
+      const a = 0.22 + proximity * 0.65;
+
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${r},${g},${b},${a})`;
+      ctx.fill();
+    });
+
+    requestAnimationFrame(draw);
+  }
+  draw();
+</script>
+</body>
+</html>

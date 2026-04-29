@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Demo — Tech Matrix</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0a0a0f; overflow: hidden; }
+  canvas { display: block; }
+  .label {
+    position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%);
+    color: rgba(255,255,255,.25); font-size: .75rem; letter-spacing: .1em;
+    text-transform: uppercase; pointer-events: none;
+  }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<p class="label">Clique para acelerar</p>
+<script>
+  const canvas = document.getElementById('c');
+  const ctx    = canvas.getContext('2d');
+  let W, H;
+
+  // Tecnologias usadas no portfólio
+  const SYMBOLS = [
+    'C#','.NET','SQL','API','REST','HTTP',
+    'Flutter','Dart','GET','POST','DB',
+    'HTML','CSS','JS','JSON','JWT',
+    'Git','MVC','ORM','DI','{}','[]','//', '=>',
+    '01','10','var','int','async','await',
+    'if','for','null','true','false',
+  ];
+
+  const FONT_SIZE  = 14;
+  const COL_WIDTH  = 22;
+  let columns = [];
+  let boost   = 1;
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+    const numCols = Math.ceil(W / COL_WIDTH);
+    columns = Array.from({ length: numCols }, (_, i) => ({
+      x: i * COL_WIDTH + COL_WIDTH / 2,
+      y: Math.random() * -H,                    // start above screen
+      speed: 0.8 + Math.random() * 2.2,
+      symbols: Array.from({ length: Math.ceil(H / FONT_SIZE) + 5 }, () =>
+        SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]
+      ),
+      length: Math.floor(8 + Math.random() * 18), // trail length
+      resetY: Math.random() * -300 - 100,
+    }));
+  }
+
+  function randomSymbol() {
+    return SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
+  }
+
+  resize();
+  window.addEventListener('resize', resize);
+
+  canvas.addEventListener('mousedown', () => { boost = 3.5; });
+  canvas.addEventListener('mouseup',   () => { boost = 1; });
+  canvas.addEventListener('touchstart', () => { boost = 3.5; });
+  canvas.addEventListener('touchend',   () => { boost = 1; });
+
+  function draw() {
+    // Fade trail — semi-transparent fill instead of clearRect
+    ctx.fillStyle = 'rgba(10,10,15,0.18)';
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.font = `${FONT_SIZE}px monospace`;
+    ctx.textAlign = 'center';
+
+    columns.forEach(col => {
+      col.y += col.speed * boost;
+
+      // Randomly mutate a symbol in the trail
+      if (Math.random() < 0.04) {
+        const idx = Math.floor(Math.random() * col.symbols.length);
+        col.symbols[idx] = randomSymbol();
+      }
+
+      const startRow = Math.floor(col.y / FONT_SIZE);
+
+      for (let i = 0; i < col.length; i++) {
+        const row = startRow - i;
+        if (row < 0) continue;
+
+        const sym = col.symbols[row % col.symbols.length];
+        const y   = row * FONT_SIZE;
+        if (y > H) continue;
+
+        if (i === 0) {
+          // Head — bright white
+          ctx.fillStyle = 'rgba(230,235,255,0.95)';
+        } else {
+          // Tail — gradient from indigo to dark
+          const frac  = i / col.length;
+          const alpha = (1 - frac) * 0.75;
+          // indigo → violet
+          const r = Math.round(99  + (168 - 99)  * frac);
+          const g = Math.round(102 + (85  - 102) * frac);
+          const b = Math.round(241 + (247 - 241) * frac);
+          ctx.fillStyle = `rgba(${r},${g},${b},${alpha})`;
+        }
+
+        ctx.fillText(sym, col.x, y);
+      }
+
+      // Reset column when it exits screen
+      if (col.y - col.length * FONT_SIZE > H) {
+        col.y = col.resetY - Math.random() * 200;
+        col.speed  = 0.8 + Math.random() * 2.2;
+        col.length = Math.floor(8 + Math.random() * 18);
+      }
+    });
+
+    requestAnimationFrame(draw);
+  }
+  draw();
+</script>
+</body>
+</html>

@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Briefing — Desenvolvimento de Blog</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0a0f;
+            color: #f1f5f9;
+            min-height: 100vh;
+            padding: 2.5rem 1rem 4rem;
+            overflow-x: hidden;
+        }
+
+        .bg {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            background:
+                radial-gradient(ellipse 80% 45% at 50% -10%, rgba(99,102,241,.2), transparent),
+                radial-gradient(ellipse 50% 40% at 90% 80%, rgba(14,165,233,.1), transparent);
+        }
+
+        .page { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; }
+
+        /* ── HEADER ── */
+        .form-header { text-align: center; margin-bottom: 2.75rem; }
+
+        .form-header .tag {
+            display: inline-block;
+            font-size: .7rem; font-weight: 600; letter-spacing: .1em;
+            text-transform: uppercase; color: #818cf8;
+            border: 1px solid rgba(129,140,248,.25); border-radius: 999px;
+            padding: .3rem 1rem; margin-bottom: 1rem;
+        }
+
+        .form-header h1 {
+            font-size: clamp(1.7rem, 5vw, 2.4rem); font-weight: 700;
+            letter-spacing: -.02em; margin-bottom: .5rem;
+        }
+
+        .form-header p { font-size: .9rem; color: #64748b; }
+
+        /* ── SECTION CARD ── */
+        .section-card {
+            background: rgba(255,255,255,.03);
+            border: 1px solid rgba(255,255,255,.07);
+            border-radius: 1.25rem;
+            padding: 1.75rem 1.75rem 1.5rem;
+            margin-bottom: 1.25rem;
+            transition: border-color .2s;
+        }
+
+        .section-card:focus-within { border-color: rgba(129,140,248,.3); }
+
+        .section-title {
+            display: flex; align-items: center; gap: .65rem;
+            font-size: .8rem; font-weight: 700; letter-spacing: .08em;
+            text-transform: uppercase; color: #818cf8;
+            margin-bottom: 1.5rem;
+            padding-bottom: .75rem;
+            border-bottom: 1px solid rgba(255,255,255,.06);
+        }
+
+        .section-num {
+            width: 22px; height: 22px; border-radius: 50%;
+            background: rgba(129,140,248,.15);
+            display: flex; align-items: center; justify-content: center;
+            font-size: .65rem; font-weight: 700; color: #818cf8; flex-shrink: 0;
+        }
+
+        /* ── FIELD ── */
+        .field { margin-bottom: 1.25rem; }
+        .field:last-child { margin-bottom: 0; }
+
+        .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        @media (max-width: 560px) { .field-row { grid-template-columns: 1fr; } }
+
+        label.field-label {
+            display: block;
+            font-size: .78rem; font-weight: 600; color: #94a3b8;
+            margin-bottom: .45rem;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        select,
+        textarea {
+            width: 100%;
+            background: rgba(255,255,255,.04);
+            border: 1px solid rgba(255,255,255,.08);
+            border-radius: .65rem;
+            padding: .65rem .9rem;
+            font-size: .875rem; font-family: 'Inter', sans-serif;
+            color: #e2e8f0;
+            transition: border-color .2s, box-shadow .2s;
+            outline: none;
+        }
+
+        input[type="text"]::placeholder,
+        input[type="email"]::placeholder,
+        textarea::placeholder { color: #334155; }
+
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        select:focus,
+        textarea:focus {
+            border-color: rgba(129,140,248,.5);
+            box-shadow: 0 0 0 3px rgba(129,140,248,.08);
+        }
+
+        textarea { resize: vertical; min-height: 90px; }
+
+        select option { background: #1e293b; }
+
+        /* Color picker row */
+        .color-field {
+            display: flex; align-items: center; gap: .6rem;
+        }
+
+        .color-field input[type="color"] {
+            width: 38px; height: 38px;
+            padding: 2px; border-radius: .5rem;
+            border: 1px solid rgba(255,255,255,.1);
+            background: rgba(255,255,255,.04);
+            cursor: pointer; flex-shrink: 0;
+        }
+
+        .color-field input[type="text"] { flex: 1; }
+
+        /* ── RADIO / CHECKBOX ── */
+        .choice-group { display: flex; flex-direction: column; gap: .5rem; margin-top: .2rem; }
+
+        .choice-label {
+            display: flex; align-items: flex-start; gap: .7rem;
+            font-size: .85rem; color: #94a3b8; cursor: pointer;
+            padding: .6rem .85rem;
+            border: 1px solid rgba(255,255,255,.06);
+            border-radius: .65rem;
+            transition: background .15s, border-color .15s;
+        }
+
+        .choice-label:hover { background: rgba(255,255,255,.04); border-color: rgba(129,140,248,.2); }
+
+        .choice-label input[type="radio"],
+        .choice-label input[type="checkbox"] {
+            width: 15px; height: 15px; margin-top: 2px; flex-shrink: 0;
+            accent-color: #818cf8;
+        }
+
+        /* ── SUBMIT ── */
+        .form-footer { margin-top: 2rem; display: flex; justify-content: center; }
+
+        .btn-submit {
+            display: inline-flex; align-items: center; gap: .5rem;
+            padding: .85rem 2.25rem;
+            font-size: .925rem; font-weight: 700; font-family: 'Inter', sans-serif;
+            color: #fff;
+            background: linear-gradient(135deg, #6366f1, #0ea5e9);
+            border: none; border-radius: .85rem; cursor: pointer;
+            transition: opacity .2s, transform .2s, box-shadow .2s;
+        }
+
+        .btn-submit:hover {
+            opacity: .9; transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(99,102,241,.35);
+        }
+
+        .btn-submit svg { width: 16px; height: 16px; fill: currentColor; flex-shrink: 0; }
+
+        /* ── BACK LINK ── */
+        .back-link {
+            display: inline-flex; align-items: center; gap: .35rem;
+            font-size: .78rem; color: #475569; text-decoration: none;
+            margin-bottom: 2rem;
+            transition: color .2s;
+        }
+        .back-link:hover { color: #94a3b8; }
+        .back-link svg { width: 14px; height: 14px; fill: currentColor; }
+    </style>
+</head>
+<body>
+
+<div class="bg" aria-hidden="true"></div>
+
+<div class="page">
+
+    <a class="back-link" href="/">
+        <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+        Voltar ao início
+    </a>
+
+    <header class="form-header">
+        <span class="tag">Briefing</span>
+        <h1>Desenvolvimento de Blog</h1>
+        <p>Preencha as informações abaixo para que possamos criar o blog ideal para você.</p>
+    </header>
+
+    <form id="briefingForm">
+
+        <!-- CONTRATANTE -->
+        <div class="section-card">
+            <div class="section-title"><span class="section-num">✦</span> Identificação</div>
+            <div class="field">
+                <label class="field-label" for="contratante">Nome do contratante *</label>
+                <input type="text" id="contratante" name="Contratante" placeholder="Seu nome completo" required>
+            </div>
+        </div>
+
+        <!-- 1. INFORMAÇÕES GERAIS -->
+        <div class="section-card">
+            <div class="section-title"><span class="section-num">1</span> Informações Gerais</div>
+
+            <div class="field">
+                <label class="field-label" for="nomeBlog">Nome do Blog *</label>
+                <input type="text" id="nomeBlog" name="Nome do Blog" placeholder="Nome que será exibido no blog" required>
+            </div>
+
+            <div class="field">
+                <label class="field-label" for="objetivoBlog">Objetivo do Blog</label>
+                <textarea id="objetivoBlog" name="Objetivo do Blog" placeholder="Ex.: resenhas de livros, artigos educacionais, atualizações da empresa…"></textarea>
+            </div>
+
+            <div class="field">
+                <label class="field-label" for="publicoAlvo">Público-Alvo</label>
+                <textarea id="publicoAlvo" name="Público-Alvo" placeholder="Ex.: leitores adultos, jovens, profissionais da área…"></textarea>
+            </div>
+        </div>
+
+        <!-- 2. IDENTIDADE VISUAL -->
+        <div class="section-card">
+            <div class="section-title"><span class="section-num">2</span> Identidade Visual</div>
+
+            <div class="field-row">
+                <div class="field">
+                    <label class="field-label">Cor Primária</label>
+                    <div class="color-field">
+                        <input type="color" id="corPrimariaColor" value="#3b82f6"
+                               oninput="document.getElementById('coresPrimarias').value=this.value">
+                        <input type="text" id="coresPrimarias" name="Cores Primárias" placeholder="#3b82f6 ou descrição"
+                               oninput="syncColor('corPrimariaColor', this.value)">
+                    </div>
+                </div>
+                <div class="field">
+                    <label class="field-label">Cor Secundária</label>
+                    <div class="color-field">
+                        <input type="color" id="corSecundariaColor" value="#8b5cf6"
+                               oninput="document.getElementById('coresSecundarias').value=this.value">
+                        <input type="text" id="coresSecundarias" name="Cores Secundárias" placeholder="#8b5cf6 ou descrição"
+                               oninput="syncColor('corSecundariaColor', this.value)">
+                    </div>
+                </div>
+            </div>
+
+            <div class="field">
+                <label class="field-label">Cor Neutra (fundo / texto)</label>
+                <div class="color-field">
+                    <input type="color" id="corNeutraColor" value="#f1f5f9"
+                           oninput="document.getElementById('coresNeutras').value=this.value">
+                    <input type="text" id="coresNeutras" name="Cores Neutras" placeholder="#f1f5f9 ou descrição"
+                           oninput="syncColor('corNeutraColor', this.value)">
+                </div>
+            </div>
+
+            <div class="field">
+                <label class="field-label">Logotipo</label>
+                <div class="choice-group">
+                    <label class="choice-label">
+                        <input type="radio" name="Logotipo" value="Logotipo já disponível (enviar pelo WhatsApp)">
+                        Logotipo já disponível — enviarei pelo WhatsApp
+                    </label>
+                    <label class="choice-label">
+                        <input type="radio" name="Logotipo" value="Será desenvolvido por terceiros">
+                        Será desenvolvido por terceiros (informar data de entrega)
+                    </label>
+                </div>
+            </div>
+
+            <div class="field-row">
+                <div class="field">
+                    <label class="field-label" for="tipografiaTitulo">Fonte para títulos</label>
+                    <input type="text" id="tipografiaTitulo" name="tipografiaTitulo" placeholder="Ex.: Playfair Display">
+                </div>
+                <div class="field">
+                    <label class="field-label" for="tipografiaTexto">Fonte para corpo do texto</label>
+                    <input type="text" id="tipografiaTexto" name="tipografiaTexto" placeholder="Ex.: Inter, Roboto">
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. LAYOUT -->
+        <div class="section-card">
+            <div class="section-title"><span class="section-num">3</span> Layout e Estrutura</div>
+
+            <div class="field">
+                <label class="field-label">Página inicial</label>
+                <div class="choice-group">
+                    <label class="choice-label"><input type="radio" name="PaginaInicial" value="Resumos das postagens"> Resumos das postagens</label>
+                    <label class="choice-label"><input type="radio" name="PaginaInicial" value="Postagens completas"> Postagens completas</label>
+                    <label class="choice-label"><input type="radio" name="PaginaInicial" value="Cards com imagem e resumo"> Cards com imagem e resumo</label>
+                    <label class="choice-label"><input type="radio" name="PaginaInicial" value="Lista ou grid de postagens"> Lista ou grid de postagens</label>
+                </div>
+            </div>
+
+            <div class="field">
+                <label class="field-label">Seções necessárias</label>
+                <div class="choice-group">
+                    <label class="choice-label"><input type="checkbox" name="secoesNecessarias" value="Página de Resenhas / Artigos"> Página de Resenhas / Artigos</label>
+                    <label class="choice-label"><input type="checkbox" name="secoesNecessarias" value="Sobre o Autor / Sobre o Blog"> Sobre o Autor / Sobre o Blog</label>
+                    <label class="choice-label"><input type="checkbox" name="secoesNecessarias" value="Página de Contato"> Página de Contato</label>
+                </div>
+            </div>
+
+            <div class="field">
+                <label class="field-label" for="outrosEspecificar">Outras seções (especifique)</label>
+                <input type="text" id="outrosEspecificar" name="outrosEspecificar" placeholder="Ex.: Página de eventos, newsletter…">
+            </div>
+
+            <div class="field">
+                <label class="field-label">Elementos fixos</label>
+                <div class="choice-group">
+                    <label class="choice-label"><input type="checkbox" name="Elementos Fixos" value="Barra de navegação"> Barra de navegação</label>
+                    <label class="choice-label"><input type="checkbox" name="Elementos Fixos" value="Rodapé"> Rodapé</label>
+                    <label class="choice-label"><input type="checkbox" name="Elementos Fixos" value="Barra lateral"> Barra lateral (sidebar)</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. CONTEÚDO -->
+        <div class="section-card">
+            <div class="section-title"><span class="section-num">4</span> Conteúdo</div>
+
+            <div class="field">
+                <label class="field-label" for="categorias">Categorias / Tags</label>
+                <textarea id="categorias" name="Categorias" placeholder="Ex.: resenhas, autores, lançamentos, editoras, gêneros literários…"></textarea>
+            </div>
+
+            <div class="field">
+                <label class="field-label" for="textos">Textos institucionais</label>
+                <textarea id="textos" name="textos" placeholder="Textos para Sobre o Blog, Contato etc. Podem ser enviados depois pelo WhatsApp."></textarea>
+            </div>
+
+            <div class="field">
+                <label class="field-label">Imagens</label>
+                <p style="font-size:.8rem;color:#475569;margin-top:.25rem;">As imagens serão enviadas pelo WhatsApp após o preenchimento deste formulário.</p>
+            </div>
+        </div>
+
+        <!-- 5. FUNCIONALIDADES -->
+        <div class="section-card">
+            <div class="section-title"><span class="section-num">5</span> Funcionalidades Extras</div>
+
+            <div class="field">
+                <label class="field-label">Formulário de Contato</label>
+                <div class="choice-group">
+                    <label class="choice-label"><input type="radio" name="formularioContato" value="Sim"> Sim</label>
+                    <label class="choice-label"><input type="radio" name="formularioContato" value="Não"> Não</label>
+                </div>
+            </div>
+
+            <div class="field">
+                <label class="field-label" for="formularioContatoDetalhes">Campos do formulário de contato</label>
+                <input type="text" id="formularioContatoDetalhes" name="formularioContatoDetalhes" placeholder="Ex.: nome, e-mail, mensagem, telefone…">
+            </div>
+
+            <div class="field">
+                <label class="field-label">Integração com redes sociais</label>
+                <div class="choice-group">
+                    <label class="choice-label">
+                        <input type="checkbox" name="botaoCompartilhamento" value="Exibir botões de compartilhamento nas postagens">
+                        Botões de compartilhamento nas postagens
+                    </label>
+                </div>
+            </div>
+
+            <div class="field">
+                <label class="field-label" for="redesSociais">Redes a integrar</label>
+                <input type="text" id="redesSociais" name="redesSociais" placeholder="Ex.: Instagram, Facebook, Twitter…">
+            </div>
+
+            <div class="field">
+                <label class="field-label">Sistema de comentários</label>
+                <div class="choice-group">
+                    <label class="choice-label">
+                        <input type="radio" name="comentarios" value="Padrão WordPress" onclick="toggleComentarioEspecifico(false)">
+                        Sistema padrão do WordPress
+                    </label>
+                    <label class="choice-label">
+                        <input type="radio" name="comentarios" value="Plugin específico" onclick="toggleComentarioEspecifico(true)">
+                        Plugin específico (ex.: Disqus)
+                    </label>
+                </div>
+                <input type="text" id="comentariosEspecificoTexto" name="comentariosEspecificoTexto"
+                       placeholder="Especifique o plugin"
+                       style="display:none; margin-top:.6rem;">
+            </div>
+        </div>
+
+        <div class="form-footer">
+            <button type="button" class="btn-submit" onclick="generatePDF()">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8.5 7.5c0 .83-.67 1.5-1.5 1.5H9v2H7.5V7H10c.83 0 1.5.67 1.5 1.5v1zm5 2c0 .83-.67 1.5-1.5 1.5h-2.5V7H15c.83 0 1.5.67 1.5 1.5v3zm4-3H19v1h1.5V11H19v2h-1.5V7h3v1.5zM9 9.5h1v-1H9v1zM4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm10 5.5h1v-3h-1v3z"/></svg>
+                Gerar PDF do Briefing
+            </button>
+        </div>
+
+    </form>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+<script>
+    function syncColor(colorInputId, hexValue) {
+        if (/^#[0-9A-Fa-f]{6}$/.test(hexValue)) {
+            document.getElementById(colorInputId).value = hexValue;
+        }
+    }
+
+    function getCheckedValues(name) {
+        return [...document.querySelectorAll(`input[name="${name}"]:checked`)]
+            .map(el => el.value).join(', ');
+    }
+
+    function toggleComentarioEspecifico(show) {
+        document.getElementById('comentariosEspecificoTexto').style.display = show ? 'block' : 'none';
+    }
+
+    function hexToRgb(hex) {
+        const r = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return r ? [parseInt(r[1],16), parseInt(r[2],16), parseInt(r[3],16)] : null;
+    }
+
+    function generatePDF() {
+        // Validação básica
+        const contratante = document.getElementById('contratante').value.trim();
+        const nomeBlog    = document.getElementById('nomeBlog').value.trim();
+        if (!contratante || !nomeBlog) {
+            alert('Preencha ao menos o nome do contratante e o nome do blog antes de gerar o PDF.');
+            return;
+        }
+
+        const textos = document.getElementById('textos');
+        if (!textos.value.trim()) textos.value = 'Serão informados depois pelo WhatsApp';
+
+        const { jsPDF } = window.jspdf;
+        const doc  = new jsPDF({ unit: 'mm', format: 'a4' });
+        const pw   = doc.internal.pageSize.getWidth();   // 210
+        const ph   = doc.internal.pageSize.getHeight();  // 297
+        const ml   = 16, mr = 16, contentW = pw - ml - mr;
+        let   y    = 0;
+        let   page = 1;
+
+        // ── Helpers ──────────────────────────────────────────────
+        function addFooter() {
+            const total = doc.getNumberOfPages();
+            for (let i = 1; i <= total; i++) {
+                doc.setPage(i);
+                // thin rule
+                doc.setDrawColor(220, 220, 230);
+                doc.setLineWidth(0.3);
+                doc.line(ml, ph - 12, pw - mr, ph - 12);
+                // left: branding
+                doc.setFontSize(7.5); doc.setFont('helvetica', 'normal');
+                doc.setTextColor(160, 160, 175);
+                doc.text('lucashferreira.com.br', ml, ph - 7);
+                // right: page number
+                doc.text(`Página ${i} de ${total}`, pw - mr, ph - 7, { align: 'right' });
+            }
+        }
+
+        function checkPage(needed) {
+            if (y + needed > ph - 18) {
+                doc.addPage();
+                page++;
+                y = 20;
+            }
+        }
+
+        // ── CAPA ─────────────────────────────────────────────────
+        // Fundo header da capa
+        doc.setFillColor(15, 15, 26);
+        doc.rect(0, 0, pw, 58, 'F');
+
+        // Accent bar lateral
+        doc.setFillColor(99, 102, 241);
+        doc.rect(0, 0, 4, 58, 'F');
+
+        // Título principal
+        doc.setFontSize(22); doc.setFont('helvetica', 'bold');
+        doc.setTextColor(241, 245, 249);
+        doc.text('Briefing', ml + 4, 22);
+
+        doc.setFontSize(13); doc.setFont('helvetica', 'normal');
+        doc.setTextColor(129, 140, 248);
+        doc.text('Desenvolvimento de Blog', ml + 4, 32);
+
+        // Linha divisória fina
+        doc.setDrawColor(99, 102, 241);
+        doc.setLineWidth(0.4);
+        doc.line(ml + 4, 37, pw - mr, 37);
+
+        // Meta info na capa
+        doc.setFontSize(9); doc.setFont('helvetica', 'normal');
+        doc.setTextColor(148, 163, 184);
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+        doc.text(`Contratante: ${contratante}`, ml + 4, 46);
+        doc.text(`Data: ${dateStr}`, ml + 4, 52);
+
+        y = 70;
+
+        // ── Função de seção ──────────────────────────────────────
+        function addSection(num, title, items) {
+            checkPage(24);
+
+            // Cabeçalho da seção
+            doc.setFillColor(245, 246, 255);
+            doc.roundedRect(ml, y, contentW, 10, 1.5, 1.5, 'F');
+
+            doc.setFontSize(9.5); doc.setFont('helvetica', 'bold');
+            doc.setTextColor(99, 102, 241);
+            const label = num ? `${num}.  ${title}` : title;
+            doc.text(label, ml + 3, y + 7);
+            y += 15;
+
+            doc.setFontSize(10);
+
+            items.forEach(({ label: lbl, value, isColor }) => {
+                const val = (value || '').trim() || 'Não informado';
+                checkPage(20);
+
+                // Label em cinza — linha própria
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(100, 116, 139);
+                doc.text(`${lbl}`, ml + 2, y);
+                y += 5.5;
+
+                // Valor — linha(s) abaixo do label
+                doc.setFont('helvetica', 'normal');
+                doc.setTextColor(30, 41, 59);
+
+                if (isColor && /^#[0-9A-Fa-f]{6}$/.test(val)) {
+                    const rgb = hexToRgb(val);
+                    if (rgb) {
+                        doc.setFillColor(...rgb);
+                        doc.setDrawColor(200, 200, 200);
+                        doc.setLineWidth(0.2);
+                        doc.roundedRect(ml + 2, y - 3.5, 8, 5, 1, 1, 'FD');
+                        doc.text(val, ml + 13, y + 0.5);
+                        y += 9;
+                        return;
+                    }
+                }
+
+                const lines = doc.splitTextToSize(val, contentW - 4);
+                lines.forEach((line, i) => {
+                    if (i > 0) checkPage(6);
+                    doc.text(line, ml + 2, y);
+                    y += 5.5;
+                });
+                y += 4; // espaço após cada item
+            });
+
+            // Linha separadora leve
+            y += 2;
+            doc.setDrawColor(230, 232, 245);
+            doc.setLineWidth(0.25);
+            doc.line(ml, y, ml + contentW, y);
+            y += 7;
+        }
+
+        // ── Dados ────────────────────────────────────────────────
+        const fd = new FormData(document.getElementById('briefingForm'));
+
+        addSection(null, 'Identificação', [
+            { label: 'Contratante', value: fd.get('Contratante') }
+        ]);
+        addSection(1, 'Informações Gerais', [
+            { label: 'Nome do Blog',  value: fd.get('Nome do Blog') },
+            { label: 'Objetivo',      value: fd.get('Objetivo do Blog') },
+            { label: 'Público-Alvo',  value: fd.get('Público-Alvo') }
+        ]);
+        addSection(2, 'Identidade Visual', [
+            { label: 'Cor Primária',   value: fd.get('Cores Primárias'),   isColor: true },
+            { label: 'Cor Secundária', value: fd.get('Cores Secundárias'), isColor: true },
+            { label: 'Cor Neutra',     value: fd.get('Cores Neutras'),     isColor: true },
+            { label: 'Logotipo',       value: fd.get('Logotipo') },
+            { label: 'Fonte Títulos',  value: fd.get('tipografiaTitulo') },
+            { label: 'Fonte Texto',    value: fd.get('tipografiaTexto') }
+        ]);
+        addSection(3, 'Layout e Estrutura', [
+            { label: 'Página Inicial',  value: fd.get('PaginaInicial') },
+            { label: 'Seções',          value: getCheckedValues('secoesNecessarias') },
+            { label: 'Outras seções',   value: fd.get('outrosEspecificar') },
+            { label: 'Elementos fixos', value: getCheckedValues('Elementos Fixos') }
+        ]);
+        addSection(4, 'Conteúdo', [
+            { label: 'Categorias/Tags', value: fd.get('Categorias') },
+            { label: 'Textos',          value: fd.get('textos') }
+        ]);
+        addSection(5, 'Funcionalidades Extras', [
+            { label: 'Formulário de Contato', value: fd.get('formularioContato') },
+            { label: 'Campos do formulário',  value: fd.get('formularioContatoDetalhes') },
+            { label: 'Compartilhamento',      value: getCheckedValues('botaoCompartilhamento') },
+            { label: 'Redes sociais',         value: fd.get('redesSociais') },
+            { label: 'Comentários',           value: fd.get('comentarios') },
+            { label: 'Plugin específico',     value: fd.get('comentariosEspecificoTexto') }
+        ]);
+
+        addFooter();
+
+        const fileName = `Briefing_${nomeBlog.replace(/\s+/g, '_')}.pdf`;
+        doc.save(fileName);
+    }
+</script>
+
+</body>
+</html>
